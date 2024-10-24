@@ -1,7 +1,15 @@
+import {Component} from 'react'
+import {Switch, Route} from 'react-router-dom'
+import MoodTrackerContext from './context/MoodTrackerContext'
+import Login from './components/Login'
+import Home from './components/Home'
+import NotFound from './components/NotFound'
+import ProtectedRoute from './components/ProtectedRoute'
+import Reports from './components/Reports'
 import './App.css'
 
-// #region - Use these lists in your code.
 
+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
 const daysList = [
   {
     id: '3639dd44-a5d5-11ec-b909-0242ac120002',
@@ -2346,6 +2354,346 @@ const emojisList = [
 
 // #endregion
 
-const App = () => <div>Hello World</div>
+class App extends Component {
+  state = {
+    homeActive: true,
+    reportActive: false,
+    calenderList: initialMonthsList,
+    nameDayCount: '',
+    activeEmoji: emojisList[0].id,
+    activeEmojiName: emojisList[0].emojiName,
+    activeDay: daysList[0].dayNumber,
+    emojisListNew: emojisList,
+    reportCalenderMonth: initialMonthsList[0].month,
+    month: 1,
+    calenderReportList: [],
+  }
+
+  componentDidMount = () => {
+    this.getNameDayCount()
+    this.createEmojisList()
+    this.getCalenderReport()
+  }
+
+  onReportCalenderChange = event => {
+    this.setState(
+      {
+        reportCalenderMonth: event.target.value,
+      },
+      this.getCalenderReport,
+    )
+  }
+
+  getCalenderReport = () => {
+    const {
+      reportCalenderMonth,
+      month,
+      homeActive,
+      calenderList,
+      emojisListNew,
+    } = this.state
+    console.log(reportCalenderMonth)
+    const calenderMonth = homeActive ? month : reportCalenderMonth
+    const monthDatesList = calenderList[calenderMonth - 1].dates
+    console.log(monthDatesList)
+
+    let veryHappyCount = 0
+    let happyCount = 0
+    let neutralCount = 0
+    let sadCount = 0
+    let verySadCount = 0
+
+    monthDatesList.forEach(item => {
+      if (item.emojiName === 'Very Happy') {
+        veryHappyCount += 1
+      } else if (item.emojiName === 'Happy') {
+        happyCount += 1
+      } else if (item.emojiName === 'Neutral') {
+        neutralCount += 1
+      } else if (item.emojiName === 'Sad') {
+        sadCount += 1
+      } else if (item.emojiName === 'Very Sad') {
+        verySadCount += 1
+      }
+    })
+
+    console.log('hello report list')
+    console.log(happyCount, neutralCount)
+
+    const newList = emojisListNew.map(item => {
+      let count
+
+      if (item.emojiName === 'Very Happy') {
+        count = veryHappyCount
+      } else if (item.emojiName === 'Happy') {
+        count = happyCount
+      } else if (item.emojiName === 'Neutral') {
+        count = neutralCount
+      } else if (item.emojiName === 'Sad') {
+        count = sadCount
+      } else if (item.emojiName === 'Very Sad') {
+        count = verySadCount
+      }
+
+      return {
+        id: item.id,
+        count,
+        emojiUrl: item.emojiUrl,
+      }
+    })
+
+    this.setState({
+      calenderReportList: newList,
+    })
+  }
+
+  onLeftArrowClick = () => {
+    const {month} = this.state
+    if (month > 1) {
+      this.setState(
+        prev => ({
+          month: prev.month - 1,
+        }),
+        this.onChangeMonth,
+      )
+    }
+  }
+
+  onRightArrowClick = () => {
+    const {month} = this.state
+    if (month < 12) {
+      this.setState(
+        prev => ({
+          month: prev.month + 1,
+        }),
+        this.onChangeMonth,
+      )
+    }
+  }
+
+  createEmojisList = () => {
+    console.log('onCreateEmojisList')
+    const {emojisListNew} = this.state
+    const newList = emojisListNew.map(item => ({
+      ...item,
+      count: 0,
+    }))
+    console.log(newList)
+    console.log('mama')
+    this.setState({
+      emojisListNew: newList,
+    })
+  }
+
+  onChangeMonth = () => {
+    const {month} = this.state
+    this.setState(
+      {
+        month,
+      },
+      () => {
+        this.getNameDayCount()
+        this.getCalenderReport()
+      },
+    )
+  }
+
+  getNameDayCount = () => {
+    const {calenderList, activeEmojiName, activeDay, month} = this.state
+
+    let count = 0
+    const datesList = calenderList[month - 1].dates
+    datesList.forEach(item => {
+      const dayNum = parseInt(item.date)
+      if (
+        dayNum % 7 === parseInt(activeDay) &&
+        item.emojiName === activeEmojiName
+      ) {
+        count += 1
+      }
+    })
+    const ans = `0${count}`
+    this.setState({
+      nameDayCount: ans,
+    })
+  }
+
+  onEmojiClick = id => {
+    this.setState({
+      activeEmoji: id,
+    })
+  }
+
+  onDateLiClick = (id, month) => {
+    const {calenderList, activeEmoji, emojisListNew} = this.state
+    const datesList = calenderList[month - 1].dates
+    const liObj = datesList.find(item => item.id === id)
+    const actEmojiObj = emojisListNew.find(item => item.id === activeEmoji)
+
+    let newObj
+    let pos
+    let difEmojiName
+
+    if (liObj.emojiName === '' || liObj.emojiName !== actEmojiObj?.emojiName) {
+      newObj = {
+        ...liObj,
+        emojiUrl: actEmojiObj?.emojiUrl || '',
+        emojiName: actEmojiObj?.emojiName || '',
+      }
+      if (liObj.emojiName !== '') {
+        pos = 'nota'
+        difEmojiName = liObj.emojiName
+      } else {
+        pos = 'plus'
+      }
+    } else if (liObj.emojiName === actEmojiObj?.emojiName) {
+      newObj = {...liObj, emojiUrl: '', emojiName: ''}
+      pos = 'minus'
+    }
+
+    const newDatesList = datesList.map(item => (item.id === id ? newObj : item))
+    const newMonth = {...calenderList[month - 1], dates: newDatesList}
+    const newCalenderList = [
+      ...calenderList.slice(0, month - 1),
+      newMonth,
+      ...calenderList.slice(month),
+    ]
+
+    this.setState(
+      {
+        calenderList: newCalenderList,
+      },
+      () => {
+        this.getNameDayCount()
+        this.onUpdateEmojiList(activeEmoji, pos, difEmojiName)
+        this.getCalenderReport()
+      },
+    )
+  }
+
+  onUpdateEmojiList = (activeEmoji, pos, diffEmoji) => {
+    console.log('onUpdateEmojisList')
+
+    const {emojisListNew} = this.state
+    console.log(emojisListNew)
+    console.log('inMAMA')
+    let newList = emojisListNew.map(item => {
+      if (item.id === activeEmoji) {
+        let val
+        if (pos === 'plus' || pos === 'nota') {
+          val = item.count + 1
+        } else {
+          val = item.count - 1
+        }
+        const newObj = {
+          ...item,
+          count: val,
+        }
+        return newObj
+      }
+      return item
+    })
+    if (pos === 'nota') {
+      newList = newList.map(item => {
+        if (item.emojiName === diffEmoji) {
+          const val = item.count - 1
+          const newObj = {
+            ...item,
+            count: val,
+          }
+          return newObj
+        }
+        return item
+      })
+    }
+    this.setState({
+      emojisListNew: newList,
+    })
+  }
+
+  onDayChange = event => {
+    this.setState(
+      {
+        activeDay: event.target.value,
+      },
+      this.getNameDayCount,
+    )
+  }
+
+  onEmojiNameChange = event => {
+    this.setState(
+      {
+        activeEmojiName: event.target.value,
+      },
+      this.getNameDayCount,
+    )
+  }
+
+  onHomeClick = () => {
+    this.setState({
+      homeActive: true,
+      reportActive: false,
+    })
+  }
+
+  onReportClick = () => {
+    this.setState({
+      reportActive: true,
+      homeActive: false,
+    })
+  }
+
+  render() {
+    const {
+      homeActive,
+      reportActive,
+      calenderList,
+      nameDayCount,
+      activeEmoji,
+      activeDay,
+      activeEmojiName,
+      month,
+      emojisListNew,
+      calenderReportList,
+      reportCalenderMonth,
+    } = this.state
+    return (
+      <MoodTrackerContext.Provider
+        value={{
+          homeActive,
+          reportActive,
+          onHomeClick: this.onHomeClick,
+          onReportClick: this.onReportClick,
+          onChangeCalenderList: this.onDateLiClick,
+          calenderList,
+          emojisListNew,
+          daysList,
+          nameDayCount,
+          activeEmoji,
+          activeDay,
+          activeEmojiName,
+          month,
+          onEmojiClick: this.onEmojiClick,
+          onEmojiNameChange: this.onEmojiNameChange,
+          onDayChange: this.onDayChange,
+          getNameDayCount: this.getNameDayCount,
+          onChangeMonth: this.onChangeMonth,
+          onLeftArrowClick: this.onLeftArrowClick,
+          onRightArrowClick: this.onRightArrowClick,
+          onReportCalenderChange: this.onReportCalenderChange,
+          calenderReportList,
+          reportCalenderMonth,
+        }}
+      >
+        <Switch>
+          <Route exact path="/login" component={Login} />
+          <ProtectedRoute exact path="/" component={Home} />
+          <ProtectedRoute exact path="/reports" component={Reports} />
+          <Route component={NotFound} />
+        </Switch>
+      </MoodTrackerContext.Provider>
+    )
+  }
+}
 
 export default App
