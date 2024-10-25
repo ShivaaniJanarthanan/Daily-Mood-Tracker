@@ -8,7 +8,6 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Reports from './components/Reports'
 import './App.css'
 
-
 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
 const daysList = [
   {
@@ -2572,11 +2571,8 @@ class App extends Component {
   }
 
   onUpdateEmojiList = (activeEmoji, pos, diffEmoji) => {
-    console.log('onUpdateEmojisList')
-
     const {emojisListNew} = this.state
-    console.log(emojisListNew)
-    console.log('inMAMA')
+
     let newList = emojisListNew.map(item => {
       if (item.id === activeEmoji) {
         let val
