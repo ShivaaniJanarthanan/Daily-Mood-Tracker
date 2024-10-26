@@ -8,7 +8,6 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Reports from './components/Reports'
 import './App.css'
 
-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
 const daysList = [
   {
     id: '3639dd44-a5d5-11ec-b909-0242ac120002',
